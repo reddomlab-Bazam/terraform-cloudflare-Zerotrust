@@ -1,7 +1,7 @@
 // Cloudflare Zero Trust Terraform configuration for Red/Blue Team security framework
 terraform {
   cloud {
-    organization = "reddome"
+    organization = "reddomelabproject"
     workspaces {
       name = "terraform-cloudflare-Zerotrust"
     }
@@ -86,9 +86,9 @@ module "access" {
   source               = "../../modules/access"
   account_id           = var.account_id
   cloudflare_account_id = var.account_id
-  domain               = "reddome.org"
+  domain               = "reddomelab.com"
   app_name             = "reddome-${terraform.workspace}"
-  allowed_emails       = ["user@reddome.org"]
+  allowed_emails       = ["user@reddomreddelab.com"]
   red_team_name        = var.red_team_name
   blue_team_name       = var.blue_team_name
   red_team_group_id    = module.idp.red_team_id
