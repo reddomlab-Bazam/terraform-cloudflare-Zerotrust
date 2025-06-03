@@ -1,95 +1,78 @@
-output "teams_account_id" {
-  value = module.warp.teams_account_id
-}
-
-output "shared_app_domain" {
-  value       = module.access.shared_app_domain
-  description = "Domain for the shared application"
-}
-
+# Red Team Application Outputs
 output "red_team_app_domain" {
-  value       = module.access.red_team_app_domain
   description = "Domain for the Red Team application"
+  value       = module.access.red_team_app_domain
 }
 
+# Blue Team Application Outputs  
 output "blue_team_app_domain" {
-  value       = module.access.blue_team_app_domain
   description = "Domain for the Blue Team application"
+  value       = module.access.blue_team_app_domain
 }
 
-output "warp_enrollment_url" {
-  value       = "https://${module.access.shared_app_domain}/warp"
-  description = "URL for WARP client enrollment"
-}
-
-# Monitoring Applications
+# Monitoring Application Outputs
 output "wazuh_app_domain" {
+  description = "Domain for Wazuh security platform"
   value       = module.access.wazuh_app_domain
-  description = "Domain for the Wazuh application"
 }
 
 output "grafana_app_domain" {
+  description = "Domain for Grafana monitoring dashboard"
   value       = module.access.grafana_app_domain
-  description = "Domain for the Grafana application"
 }
 
-# Tunnel Information for Azure Workspace
+# WARP Enrollment URL - use red team domain as example
+output "warp_enrollment_url" {
+  description = "URL for WARP client enrollment"
+  value       = "https://${module.access.red_team_app_domain}/warp"
+}
+
+# Tunnel Configuration Outputs
 output "monitoring_tunnel_id" {
+  description = "ID of the monitoring tunnel for Wazuh and Grafana"
   value       = module.access.monitoring_tunnel_id
-  description = "ID of the monitoring tunnel for Azure AKS"
-}
-
-output "monitoring_tunnel_secret" {
-  value       = module.access.monitoring_tunnel_secret
-  description = "Secret for the monitoring tunnel (use in Azure workspace)"
-  sensitive   = true
 }
 
 output "monitoring_tunnel_cname" {
+  description = "CNAME target for tunnel DNS records"
   value       = module.access.monitoring_tunnel_cname
-  description = "CNAME record for the monitoring tunnel"
 }
 
-output "wazuh_tunnel_token" {
-  value       = module.access.wazuh_tunnel_token
-  description = "Tunnel token for cloudflared authentication"
-  sensitive   = true
+# Team Configuration Outputs
+output "red_team_group_id" {
+  description = "ID of the Red Team access group"
+  value       = module.idp.red_team_id
 }
 
-# Instructions for Azure Implementation
-output "azure_implementation_instructions" {
-  value = <<-EOT
-    
-    === AZURE IMPLEMENTATION INSTRUCTIONS ===
-    
-    1. Use the following tunnel token in your Azure AKS/VM:
-       - Tunnel ID: ${module.access.monitoring_tunnel_id}
-       - Use the 'wazuh_tunnel_token' output as the authentication token
-    
-    2. Install cloudflared on your Azure VM/AKS:
-       ```bash
-       # For Ubuntu/Debian
-       curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb
-       sudo dpkg -i cloudflared.deb
-       
-       # Authenticate with the tunnel token
-       sudo cloudflared service install <TUNNEL_TOKEN>
-       ```
-    
-    3. DNS Records to create:
-       - ${module.access.wazuh_app_domain} CNAME ${module.access.monitoring_tunnel_cname}
-       - ${module.access.grafana_app_domain} CNAME ${module.access.monitoring_tunnel_cname}
-    
-    4. Access URLs:
-       - Wazuh: https://${module.access.wazuh_app_domain}
-       - Grafana: https://${module.access.grafana_app_domain}
-    
-    5. Security Notes:
-       - Both applications require Intune-compliant devices
-       - Device posture checks must pass (AV, disk encryption, OS version)
-       - Session monitoring is enabled
-       - Data download/upload restrictions are in place for Wazuh
-    
-  EOT
-  description = "Implementation instructions for Azure workspace"
+output "blue_team_group_id" {
+  description = "ID of the Blue Team access group" 
+  value       = module.idp.blue_team_id
+}
+
+output "azure_idp_id" {
+  description = "ID of the Azure AD identity provider"
+  value       = module.idp.entra_idp_id
+}
+
+# Device Posture Outputs
+output "device_posture_rules" {
+  description = "List of device posture rule IDs"
+  value       = module.device_posture.all_posture_rule_ids
+}
+
+# Gateway Settings
+output "account_id" {
+  description = "Cloudflare account ID"
+  value       = var.account_id
+}
+
+# Application URLs for easy access
+output "application_urls" {
+  description = "Quick reference URLs for all applications"
+  value = {
+    red_team = "https://${module.access.red_team_app_domain}"
+    blue_team = "https://${module.access.blue_team_app_domain}"
+    wazuh = "https://${module.access.wazuh_app_domain}"
+    grafana = "https://${module.access.grafana_app_domain}"
+  }
 }
