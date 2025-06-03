@@ -8,6 +8,12 @@ variable "app_name" {
   type        = string
 }
 
+variable "domain" {
+  description = "Base domain managed by Cloudflare (e.g., reddomelab.com)"
+  type        = string
+  default     = "reddomelab.com"
+}
+
 variable "allowed_emails" {
   description = "List of allowed email addresses"
   type        = list(string)
@@ -62,13 +68,13 @@ variable "azure_ad_provider_id" {
 variable "red_team_app_domain" {
   description = "Domain for the Red Team application"
   type        = string
-  default     = "redteam.reddome.org"
+  default     = "redteam.reddomelab.com"
 }
 
 variable "blue_team_app_domain" {
   description = "Domain for the Blue Team application"
   type        = string
-  default     = "blueteam.reddome.org"
+  default     = "blueteam.reddomelab.com"
 }
 
 variable "red_team_group_id" {
@@ -86,21 +92,15 @@ variable "cloudflare_account_id" {
   type        = string
 }
 
-variable "domain" {
-  description = "Base domain for the application"
-  type        = string
-  default     = "reddome.org"
-}
-
 # Monitoring application domains
 variable "wazuh_domain" {
   description = "Domain for Wazuh application"
   type        = string
-  default     = "wazuh.reddome.org"
+  default     = "wazuh.reddomelab.com"
 }
 
 variable "grafana_domain" {
   description = "Domain for Grafana application"
   type        = string
-  default     = "grafana.reddome.org"
+  default     = "grafana.reddomelab.com"
 }

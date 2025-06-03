@@ -92,7 +92,7 @@ module "access" {
   source               = "../../modules/access"
   account_id           = var.account_id
   cloudflare_account_id = var.account_id
-  domain               = "reddome.org"
+  domain               = var.domain  # Use configurable domain
   app_name             = "reddome-${terraform.workspace}"
   allowed_emails       = ["user@reddomelab.com"]
   red_team_name        = var.red_team_name
@@ -104,7 +104,7 @@ module "access" {
   azure_ad_provider_id = module.idp.entra_idp_id
   device_posture_rule_ids = module.device_posture.all_posture_rule_ids
   
-  # Monitoring application domains
+  # Monitoring application domains - use configurable variables
   wazuh_domain   = var.wazuh_domain
   grafana_domain = var.grafana_domain
   

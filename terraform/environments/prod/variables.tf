@@ -87,7 +87,14 @@ variable "azure_sas_token" {
   default     = ""
 }
 
-# Monitoring application domains
+# Domain Configuration - Set this in Terraform Cloud workspace variables
+variable "domain" {
+  description = "Base domain managed by Cloudflare (configure in TFC workspace)"
+  type        = string
+  default     = "reddomelab.com"
+}
+
+# Monitoring application domains (derived from base domain)
 variable "wazuh_domain" {
   description = "Domain for Wazuh application"
   type        = string
