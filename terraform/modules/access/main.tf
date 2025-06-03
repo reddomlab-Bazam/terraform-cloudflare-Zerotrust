@@ -1,5 +1,5 @@
-# Access Module: Basic working version for Cloudflare Zero Trust
-# Focus on getting tunnel and basic access working first
+# Access Module: Remove problematic shared app, keep working team apps
+# Focus on what's working: Red Team, Blue Team, Wazuh, Grafana
 
 terraform {
   required_providers {
@@ -51,16 +51,6 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "monitoring" {
   }
 }
 
-# Shared application
-resource "cloudflare_zero_trust_access_application" "app" {
-  account_id           = var.account_id
-  name                 = var.app_name
-  domain               = "reddome.org"
-  type                 = "self_hosted"
-  session_duration     = "24h"
-  app_launcher_visible = true
-}
-
 # Wazuh Application
 resource "cloudflare_zero_trust_access_application" "wazuh" {
   account_id = var.account_id
@@ -79,35 +69,22 @@ resource "cloudflare_zero_trust_access_application" "grafana" {
   session_duration = "8h"
 }
 
-# Red Team Access Application
+# Red Team Access Application - using subdomain
 resource "cloudflare_zero_trust_access_application" "red_team" {
   account_id = var.account_id
   name       = "${var.red_team_name} Application"
-  domain     = var.red_team_app_domain
+  domain     = "redteam.${var.domain}"  # Use subdomain
   type       = "self_hosted"
   session_duration = "24h"
 }
 
-# Blue Team Access Application
+# Blue Team Access Application - using subdomain
 resource "cloudflare_zero_trust_access_application" "blue_team" {
   account_id = var.account_id
   name       = "${var.blue_team_name} Application"
-  domain     = var.blue_team_app_domain
+  domain     = "blueteam.${var.domain}"  # Use subdomain
   type       = "self_hosted"
   session_duration = "24h"
-}
-
-# Email-based access policy for shared app
-resource "cloudflare_zero_trust_access_policy" "email_policy" {
-  account_id     = var.account_id
-  application_id = cloudflare_zero_trust_access_application.app.id
-  name           = "Email Access Policy"
-  precedence     = 2
-  decision       = "allow"
-
-  include {
-    email = var.allowed_emails
-  }
 }
 
 # Red Team Access Policy (simplified)

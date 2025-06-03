@@ -1,5 +1,5 @@
-# WARP Module: Manages Cloudflare WARP client configuration and logging
-# Fixed version compatible with Cloudflare provider version 4.52.0
+# WARP Module: Final fixed version - remove problematic DNS rule
+# Compatible with Cloudflare provider version 4.52.0
 
 terraform {
   required_providers {
@@ -106,17 +106,9 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_essential_categories" {
   enabled     = true
 }
 
-# General internet access (simplified - no user group filtering)
-resource "cloudflare_zero_trust_gateway_policy" "general_internet_access" {
-  account_id  = var.account_id
-  name        = "General Internet Access"
-  description = "Allow general internet access for authenticated users"
-  precedence  = 200
-  action      = "allow"
-  filters     = ["dns"]
-  traffic     = "dns.domains[*] matches \".*\""
-  enabled     = true
-}
+# Note: Removed problematic general_internet_access rule
+# Cloudflare Zero Trust defaults to ALLOW unless explicitly blocked
+# The security blocks above will handle malicious content
 
 # WARP enrollment application
 resource "cloudflare_zero_trust_access_application" "warp_enrollment_app" {

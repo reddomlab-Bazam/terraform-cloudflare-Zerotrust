@@ -1,5 +1,5 @@
-# Gateway Module: Manages Cloudflare Zero Trust Gateway policies and network security rules
-# Simplified version compatible with Cloudflare provider 4.52.0
+# Gateway Module: Final fixed DNS filter syntax
+# Compatible with Cloudflare provider 4.52.0
 
 terraform {
   required_providers {
@@ -36,15 +36,5 @@ resource "cloudflare_zero_trust_gateway_policy" "security_tools" {
   traffic = "any(dns.domains[*] in {\"kali.org\" \"metasploit.com\" \"hackerone.com\" \"splunk.com\" \"elastic.co\" \"sentinelone.com\"})"
 }
 
-# Basic DNS Filtering Policy
-resource "cloudflare_zero_trust_gateway_policy" "dns_filter" {
-  account_id = var.account_id
-  name       = "Basic DNS Filtering"
-  precedence = 100
-  action     = "allow"
-  enabled    = true
-  description = "Allow general DNS traffic"
-
-  filters = ["dns"]
-  traffic = "dns.domains[*] matches \".*\""
-}
+# Basic DNS Filtering Policy - Final fix: remove this problematic rule
+# Instead, rely on the default allow behavior and specific security blocks above
