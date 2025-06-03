@@ -91,11 +91,11 @@ variable "azure_sas_token" {
 variable "wazuh_domain" {
   description = "Domain for Wazuh application"
   type        = string
-  default     = "wazuh.reddome.org"
+  default     = "wazuh.reddomelab.com"
 }
 
 variable "grafana_domain" {
   description = "Domain for Grafana application"
   type        = string
-  default     = "grafana.reddome.org"
+  default     = "grafana.reddomelab.com"
 }

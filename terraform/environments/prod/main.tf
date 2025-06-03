@@ -1,5 +1,5 @@
 // Cloudflare Zero Trust Terraform configuration for Red/Blue Team security framework
-// Enhanced with monitoring applications (Wazuh, Grafana) and tunnel support
+// Fixed version with correct gateway settings syntax
 
 terraform {
   cloud {
@@ -31,34 +31,35 @@ provider "cloudflare" {
 resource "cloudflare_zero_trust_gateway_settings" "zero_trust" {
   account_id = var.account_id
   
-  # Enhanced security settings
-  settings {
-    antivirus {
-      enabled_download_phase = true
-      enabled_upload_phase   = true
-      fail_closed           = true
-    }
-    
-    block_page {
-      enabled         = true
-      footer_text     = "Access blocked by RedDome Security Policy"
-      header_text     = "Access Denied"
-      logo_path       = "https://your-logo-url.com/logo.png"
-      background_color = "#1f2937"
-      name            = "RedDome Block Page"
-    }
-    
-    browser_isolation {
-      url_browser_isolation_enabled = true
-    }
-    
-    custom_certificate {
-      enabled = true
-    }
-    
-    tls_decrypt {
-      enabled = true
-    }
+  # Antivirus settings
+  antivirus {
+    enabled_download_phase = true
+    enabled_upload_phase   = true
+    fail_closed           = true
+  }
+  
+  # Block page configuration
+  block_page {
+    enabled         = true
+    footer_text     = "Access blocked by RedDome Security Policy"
+    header_text     = "Access Denied"
+    background_color = "#1f2937"
+    name            = "RedDome Block Page"
+  }
+  
+  # Browser isolation settings
+  browser_isolation {
+    url_browser_isolation_enabled = true
+  }
+  
+  # Custom certificate settings
+  custom_certificate {
+    enabled = true
+  }
+  
+  # TLS decryption settings
+  tls_decrypt {
+    enabled = true
   }
 }
 
