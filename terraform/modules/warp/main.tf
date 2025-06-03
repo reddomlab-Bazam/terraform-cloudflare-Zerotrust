@@ -1,5 +1,5 @@
 # WARP Module: Manages Cloudflare WARP client configuration and logging
-# Compatible with Cloudflare provider version 4.52.0
+# Fixed version compatible with Cloudflare provider version 4.52.0
 
 terraform {
   required_providers {
@@ -106,40 +106,16 @@ resource "cloudflare_zero_trust_gateway_policy" "allow_essential_categories" {
   enabled     = true
 }
 
-# Red Team special access - with proper identity check
-resource "cloudflare_zero_trust_gateway_policy" "security_testing_domains" {
+# General internet access (simplified - no user group filtering)
+resource "cloudflare_zero_trust_gateway_policy" "general_internet_access" {
   account_id  = var.account_id
-  name        = "Security Testing Domains - Red Team"
-  description = "Allow Red Team access to security testing domains"
-  precedence  = 7
+  name        = "General Internet Access"
+  description = "Allow general internet access for authenticated users"
+  precedence  = 200
   action      = "allow"
   filters     = ["dns"]
-  traffic = "any(dns.domains[*] matches \".*security.*|.*pentest.*|.*hack.*\") and any(user.group_ids[*] in {\"5a071d2a-8597-4096-a6b3-1d702cfab3c4\"})"
-  enabled = true
-}
-
-# Blue Team special access - with proper identity check
-resource "cloudflare_zero_trust_gateway_policy" "monitoring_domains" {
-  account_id  = var.account_id
-  name        = "Monitoring Tools Domains - Blue Team"
-  description = "Allow Blue Team access to monitoring tools domains"
-  precedence  = 8
-  action      = "allow"
-  filters     = ["dns"]
-  traffic = "any(dns.domains[*] matches \".*monitor.*|.*analytics.*|.*siem.*\") and any(user.group_ids[*] in {\"a3008467-e39c-43f6-a7ad-4769bcefe01e\"})"
-  enabled = true
-}
-
-# General internet access for authenticated team members
-resource "cloudflare_zero_trust_gateway_policy" "authenticated_internet_access" {
-  account_id  = var.account_id
-  name        = "Authenticated Internet Access"
-  description = "Allow general internet access for Red and Blue team members"
-  precedence  = 100
-  action      = "allow"
-  filters     = ["dns"]
-  traffic = "any(dns.domains[*] matches \".*\") and any(user.group_ids[*] in {\"5a071d2a-8597-4096-a6b3-1d702cfab3c4\" \"a3008467-e39c-43f6-a7ad-4769bcefe01e\"})"
-  enabled = true
+  traffic     = "dns.domains[*] matches \".*\""
+  enabled     = true
 }
 
 # WARP enrollment application

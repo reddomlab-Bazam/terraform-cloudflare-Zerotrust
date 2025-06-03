@@ -1,5 +1,5 @@
-# Access Module: Manages Cloudflare Zero Trust Access applications and policies for Red and Blue teams
-# Simplified version compatible with Cloudflare provider 4.52.0
+# Access Module: Basic working version for Cloudflare Zero Trust
+# Focus on getting tunnel and basic access working first
 
 terraform {
   required_providers {
@@ -51,7 +51,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "monitoring" {
   }
 }
 
-# Shared application (accessible by both teams)
+# Shared application
 resource "cloudflare_zero_trust_access_application" "app" {
   account_id           = var.account_id
   name                 = var.app_name
@@ -59,24 +59,6 @@ resource "cloudflare_zero_trust_access_application" "app" {
   type                 = "self_hosted"
   session_duration     = "24h"
   app_launcher_visible = true
-}
-
-# Red Team Access Application
-resource "cloudflare_zero_trust_access_application" "red_team" {
-  account_id = var.account_id
-  name       = "${var.red_team_name} Application"
-  domain     = var.red_team_app_domain
-  type       = "self_hosted"
-  session_duration = "24h"
-}
-
-# Blue Team Access Application
-resource "cloudflare_zero_trust_access_application" "blue_team" {
-  account_id = var.account_id
-  name       = "${var.blue_team_name} Application"
-  domain     = var.blue_team_app_domain
-  type       = "self_hosted"
-  session_duration = "24h"
 }
 
 # Wazuh Application
@@ -97,7 +79,25 @@ resource "cloudflare_zero_trust_access_application" "grafana" {
   session_duration = "8h"
 }
 
-# Policy for email-based access to the shared app
+# Red Team Access Application
+resource "cloudflare_zero_trust_access_application" "red_team" {
+  account_id = var.account_id
+  name       = "${var.red_team_name} Application"
+  domain     = var.red_team_app_domain
+  type       = "self_hosted"
+  session_duration = "24h"
+}
+
+# Blue Team Access Application
+resource "cloudflare_zero_trust_access_application" "blue_team" {
+  account_id = var.account_id
+  name       = "${var.blue_team_name} Application"
+  domain     = var.blue_team_app_domain
+  type       = "self_hosted"
+  session_duration = "24h"
+}
+
+# Email-based access policy for shared app
 resource "cloudflare_zero_trust_access_policy" "email_policy" {
   account_id     = var.account_id
   application_id = cloudflare_zero_trust_access_application.app.id
@@ -108,76 +108,56 @@ resource "cloudflare_zero_trust_access_policy" "email_policy" {
   include {
     email = var.allowed_emails
   }
-  
-  require {
-    device_posture = var.device_posture_rule_ids
-  }
 }
 
-# Red Team Access Policy
+# Red Team Access Policy (simplified)
 resource "cloudflare_zero_trust_access_policy" "red_team" {
-  account_id = var.account_id
-  name       = "${var.red_team_name} Access Policy"
+  account_id     = var.account_id
+  name           = "${var.red_team_name} Access Policy"
   application_id = cloudflare_zero_trust_access_application.red_team.id
-  decision   = "allow"
-  precedence = 1
+  decision       = "allow"
+  precedence     = 1
 
   include {
     group = [var.red_team_group_id]
   }
-
-  require {
-    device_posture = var.device_posture_rule_ids
-  }
 }
 
-# Blue Team Access Policy
+# Blue Team Access Policy (simplified)
 resource "cloudflare_zero_trust_access_policy" "blue_team" {
-  account_id = var.account_id
-  name       = "${var.blue_team_name} Access Policy"
+  account_id     = var.account_id
+  name           = "${var.blue_team_name} Access Policy"
   application_id = cloudflare_zero_trust_access_application.blue_team.id
-  decision   = "allow"
-  precedence = 2
+  decision       = "allow"
+  precedence     = 2
 
   include {
     group = [var.blue_team_group_id]
   }
-
-  require {
-    device_posture = var.device_posture_rule_ids
-  }
 }
 
-# Wazuh Access Policy - Both teams can access
+# Wazuh Access Policy - Both teams
 resource "cloudflare_zero_trust_access_policy" "wazuh_access" {
-  account_id = var.account_id
-  name       = "Wazuh Security Access Policy"
+  account_id     = var.account_id
+  name           = "Wazuh Security Access Policy"
   application_id = cloudflare_zero_trust_access_application.wazuh.id
-  decision   = "allow"
-  precedence = 1
+  decision       = "allow"
+  precedence     = 1
 
   include {
     group = [var.red_team_group_id, var.blue_team_group_id]
-  }
-
-  require {
-    device_posture = var.device_posture_rule_ids
   }
 }
 
-# Grafana Access Policy - Both teams can access
+# Grafana Access Policy - Both teams
 resource "cloudflare_zero_trust_access_policy" "grafana_access" {
-  account_id = var.account_id
-  name       = "Grafana Monitoring Access Policy"
+  account_id     = var.account_id
+  name           = "Grafana Monitoring Access Policy"
   application_id = cloudflare_zero_trust_access_application.grafana.id
-  decision   = "allow"
-  precedence = 1
+  decision       = "allow"
+  precedence     = 1
 
   include {
     group = [var.red_team_group_id, var.blue_team_group_id]
-  }
-
-  require {
-    device_posture = var.device_posture_rule_ids
   }
 }

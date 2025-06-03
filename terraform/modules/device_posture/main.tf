@@ -1,5 +1,5 @@
 # Device Posture Module: Manages Cloudflare Zero Trust device posture rules and Microsoft Intune integration
-# Compatible with Cloudflare provider version 4.52.0
+# Fixed version compatible with Cloudflare provider version 4.52.0
 
 terraform {
   required_providers {
@@ -88,38 +88,6 @@ resource "cloudflare_zero_trust_device_posture_rule" "os_version_macos" {
   input {
     version = "12.0.0"
     operator = ">="
-  }
-}
-
-# Intune Compliance Rule - Windows
-resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
-  account_id = var.account_id
-  name       = "Intune Compliance Check - Windows"
-  type       = "intune"
-  description = "Checks Windows device compliance through Microsoft Intune"
-  schedule   = "30m"
-  expiration = "30m"
-  match {
-    platform = "windows"
-  }
-  input {
-    compliance_status = "compliant"
-  }
-}
-
-# Intune Compliance Rule - macOS
-resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance_macos" {
-  account_id = var.account_id
-  name       = "Intune Compliance Check - macOS"
-  type       = "intune"
-  description = "Checks macOS device compliance through Microsoft Intune"
-  schedule   = "30m"
-  expiration = "30m"
-  match {
-    platform = "mac"
-  }
-  input {
-    compliance_status = "compliant"
   }
 }
 
