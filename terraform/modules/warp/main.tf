@@ -1,5 +1,5 @@
 # WARP Module: Manages Cloudflare WARP client configuration and logging
-# This module configures WARP client settings and logging for Zero Trust access
+# Compatible with Cloudflare provider version 4.52.0
 
 terraform {
   required_providers {
@@ -188,49 +188,7 @@ resource "cloudflare_zero_trust_access_policy" "blue_team_warp_policy" {
   }
 }
 
-# WARP Client Configuration
-# Sets up the WARP client with team-specific settings and security requirements
-resource "cloudflare_zero_trust_warp_client" "warp" {
-  account_id = var.account_id
-  name       = var.warp_name
-  enabled    = true
-
-  # Device enrollment settings
-  device_enrollment {
-    enabled = true
-    require_all = true
-    rules {
-      platform = "windows"
-      os_version {
-        operator = ">="
-        version  = "10.0.19044"
-      }
-    }
-  }
-
-  # Security settings
-  security {
-    tls_verify = true
-    dns {
-      servers = ["1.1.1.1", "1.0.0.1"]
-    }
-  }
-}
-
-# WARP Device Posture Integration
-resource "cloudflare_zero_trust_device_posture_integration" "warp" {
-  account_id = var.account_id
-  name       = "WARP Integration"
-  type       = "workspace_one"
-  interval   = "30m"
-  config {
-    client_id     = var.azure_client_id
-    client_secret = var.azure_client_secret
-    customer_id   = var.azure_directory_id
-  }
-}
-
-# WARP Logging Configuration
+# WARP Logging Configuration (optional)
 resource "cloudflare_logpush_job" "warp_logs" {
   count            = var.enable_logs ? 1 : 0
   account_id       = var.account_id
@@ -238,20 +196,4 @@ resource "cloudflare_logpush_job" "warp_logs" {
   dataset          = "gateway_dns"
   destination_conf = "azure://${var.azure_storage_account}.blob.core.windows.net/${var.azure_storage_container}?${var.azure_sas_token}"
   enabled          = true
-}
-
-# WARP Device Posture Rule
-resource "cloudflare_zero_trust_device_posture_rule" "warp" {
-  account_id = var.account_id
-  name       = "WARP Client Check"
-  type       = "workspace_one"
-  description = "Checks if WARP client is installed and running"
-  schedule   = "30m"
-  expiration = "30m"
-  match {
-    platform = "windows"
-  }
-  input {
-    compliance_status = "compliant"
-  }
 }
