@@ -19,10 +19,7 @@ output "blue_team_app_domain" {
   value       = cloudflare_zero_trust_access_application.blue_team.domain
 }
 
-output "shared_app_domain" {
-  description = "Domain of the shared application"
-  value       = cloudflare_zero_trust_access_application.app.domain
-}
+# Removed shared_app_domain output since we removed the shared app
 
 # Wazuh Application Outputs
 output "wazuh_app_id" {
