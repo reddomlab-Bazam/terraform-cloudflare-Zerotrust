@@ -1,4 +1,6 @@
 // Cloudflare Zero Trust Terraform configuration for Red/Blue Team security framework
+// Enhanced with monitoring applications (Wazuh, Grafana) and tunnel support
+
 terraform {
   cloud {
     organization = "reddomelabproject"
@@ -10,7 +12,11 @@ terraform {
   required_providers {
     cloudflare = {
       source  = "cloudflare/cloudflare"
-      version = "= 4.52.0" # Pin to latest 4.x version for stability
+      version = "= 4.52.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.0.0"
     }
   }
 }
@@ -24,6 +30,36 @@ provider "cloudflare" {
 # Global Zero Trust settings for the account
 resource "cloudflare_zero_trust_gateway_settings" "zero_trust" {
   account_id = var.account_id
+  
+  # Enhanced security settings
+  settings {
+    antivirus {
+      enabled_download_phase = true
+      enabled_upload_phase   = true
+      fail_closed           = true
+    }
+    
+    block_page {
+      enabled         = true
+      footer_text     = "Access blocked by RedDome Security Policy"
+      header_text     = "Access Denied"
+      logo_path       = "https://your-logo-url.com/logo.png"
+      background_color = "#1f2937"
+      name            = "RedDome Block Page"
+    }
+    
+    browser_isolation {
+      url_browser_isolation_enabled = true
+    }
+    
+    custom_certificate {
+      enabled = true
+    }
+    
+    tls_decrypt {
+      enabled = true
+    }
+  }
 }
 
 # Identity Provider (Microsoft Entra ID) and Access Groups
@@ -86,9 +122,9 @@ module "access" {
   source               = "../../modules/access"
   account_id           = var.account_id
   cloudflare_account_id = var.account_id
-  domain               = "reddomelab.com"
+  domain               = "reddome.org"
   app_name             = "reddome-${terraform.workspace}"
-  allowed_emails       = ["user@reddomreddelab.com"]
+  allowed_emails       = ["user@reddomelab.com"]
   red_team_name        = var.red_team_name
   blue_team_name       = var.blue_team_name
   red_team_group_id    = module.idp.red_team_id
@@ -97,5 +133,10 @@ module "access" {
   blue_team_id         = module.idp.blue_team_id
   azure_ad_provider_id = module.idp.entra_idp_id
   device_posture_rule_ids = module.device_posture.all_posture_rule_ids
+  
+  # Monitoring application domains
+  wazuh_domain   = var.wazuh_domain
+  grafana_domain = var.grafana_domain
+  
   depends_on = [cloudflare_zero_trust_gateway_settings.zero_trust, module.device_posture, module.idp]
 }

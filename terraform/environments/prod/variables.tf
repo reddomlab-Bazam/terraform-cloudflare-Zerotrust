@@ -86,3 +86,16 @@ variable "azure_sas_token" {
   sensitive   = true
   default     = ""
 }
+
+# Monitoring application domains
+variable "wazuh_domain" {
+  description = "Domain for Wazuh application"
+  type        = string
+  default     = "wazuh.reddome.org"
+}
+
+variable "grafana_domain" {
+  description = "Domain for Grafana application"
+  type        = string
+  default     = "grafana.reddome.org"
+}

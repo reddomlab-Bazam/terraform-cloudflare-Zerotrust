@@ -19,54 +19,52 @@ output "blue_team_app_domain" {
   value       = cloudflare_zero_trust_access_application.blue_team.domain
 }
 
-<<<<<<< HEAD
 output "shared_app_domain" {
   description = "Domain of the shared application"
   value       = cloudflare_zero_trust_access_application.app.domain
 }
 
-# TUNNEL OUTPUTS ARE TEMPORARILY REMOVED - Uncomment when tunnels are re-enabled
-# # Tunnel Outputs
-# output "red_team_tunnel_id" {
-#   description = "ID of the Red Team tunnel"
-#   value       = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
-# }
+# Wazuh Application Outputs
+output "wazuh_app_id" {
+  description = "ID of the Wazuh application"
+  value       = cloudflare_zero_trust_access_application.wazuh.id
+}
 
-# output "blue_team_tunnel_id" {
-#   description = "ID of the Blue Team tunnel"
-#   value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
-# }
-=======
+output "wazuh_app_domain" {
+  description = "Domain of the Wazuh application"
+  value       = cloudflare_zero_trust_access_application.wazuh.domain
+}
+
+# Grafana Application Outputs
+output "grafana_app_id" {
+  description = "ID of the Grafana application"
+  value       = cloudflare_zero_trust_access_application.grafana.id
+}
+
+output "grafana_app_domain" {
+  description = "Domain of the Grafana application"
+  value       = cloudflare_zero_trust_access_application.grafana.domain
+}
+
 # Tunnel Outputs
-output "red_team_tunnel_id" {
-  description = "ID of the Red Team tunnel"
-  value       = cloudflare_zero_trust_tunnel_cloudflared.red_team.id
+output "monitoring_tunnel_id" {
+  description = "ID of the monitoring tunnel"
+  value       = cloudflare_zero_trust_tunnel_cloudflared.monitoring.id
 }
 
-output "blue_team_tunnel_id" {
-  description = "ID of the Blue Team tunnel"
-  value       = cloudflare_zero_trust_tunnel_cloudflared.blue_team.id
+output "monitoring_tunnel_secret" {
+  description = "Secret for the monitoring tunnel"
+  value       = random_id.monitoring_tunnel_secret.b64_std
+  sensitive   = true
 }
->>>>>>> parent of 448b4ad (rls13)
 
-# output "red_team_tunnel_secret" {
-#   description = "Secret for the Red Team tunnel"
-#   value       = random_id.red_team_tunnel_secret.b64_std
-#   sensitive   = true
-# }
+output "monitoring_tunnel_cname" {
+  description = "CNAME value for the monitoring tunnel"
+  value       = "${cloudflare_zero_trust_tunnel_cloudflared.monitoring.id}.cfargotunnel.com"
+}
 
-# output "blue_team_tunnel_secret" {
-#   description = "Secret for the Blue Team tunnel"
-#   value       = random_id.blue_team_tunnel_secret.b64_std
-#   sensitive   = true
-# }
-
-# output "red_team_tunnel_cname" {
-#   description = "CNAME value for the Red Team tunnel"
-#   value       = "${cloudflare_zero_trust_tunnel_cloudflared.red_team.id}.cfargotunnel.com"
-# }
-
-# output "blue_team_tunnel_cname" {
-#   description = "CNAME value for the Blue Team tunnel"
-#   value       = "${cloudflare_zero_trust_tunnel_cloudflared.blue_team.id}.cfargotunnel.com"
-# }
+output "wazuh_tunnel_token" {
+  description = "Token for Wazuh tunnel authentication"
+  value       = cloudflare_zero_trust_tunnel_cloudflared.monitoring.tunnel_token
+  sensitive   = true
+}
