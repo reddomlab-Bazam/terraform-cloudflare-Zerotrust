@@ -1,5 +1,5 @@
 // Cloudflare Zero Trust Terraform configuration for Red/Blue Team security framework
-// Fixed version with correct gateway settings syntax
+// Compatible with Cloudflare provider version 4.52.0
 
 terraform {
   cloud {
@@ -27,40 +27,9 @@ provider "cloudflare" {
   retries   = 3
 }
 
-# Global Zero Trust settings for the account
+# Global Zero Trust settings for the account - minimal configuration
 resource "cloudflare_zero_trust_gateway_settings" "zero_trust" {
   account_id = var.account_id
-  
-  # Antivirus settings
-  antivirus {
-    enabled_download_phase = true
-    enabled_upload_phase   = true
-    fail_closed           = true
-  }
-  
-  # Block page configuration
-  block_page {
-    enabled         = true
-    footer_text     = "Access blocked by RedDome Security Policy"
-    header_text     = "Access Denied"
-    background_color = "#1f2937"
-    name            = "RedDome Block Page"
-  }
-  
-  # Browser isolation settings
-  browser_isolation {
-    url_browser_isolation_enabled = true
-  }
-  
-  # Custom certificate settings
-  custom_certificate {
-    enabled = true
-  }
-  
-  # TLS decryption settings
-  tls_decrypt {
-    enabled = true
-  }
 }
 
 # Identity Provider (Microsoft Entra ID) and Access Groups
