@@ -1,313 +1,433 @@
-# Cloudflare Zero Trust Red Team/Blue Team Security Framework
+# Cloudflare Zero Trust Infrastructure
 
-This repository contains Terraform code for implementing a comprehensive Cloudflare Zero Trust security framework designed specifically for security teams with separate Red Team and Blue Team functions.
+A comprehensive Terraform configuration for deploying Cloudflare Zero Trust with Azure AD integration, designed for Red Team vs Blue Team security training environments.
 
-## Overview
+## 🏗️ Infrastructure Overview
 
-This infrastructure implements a Zero Trust security model using Cloudflare, Microsoft Entra ID (formerly Azure AD), and Microsoft Intune. The solution creates a security boundary where:
+This configuration deploys a complete Zero Trust security framework including:
 
-- Red Team members can access security testing tools and environments
-- Blue Team members can access monitoring and defensive security tools
-- Both teams can access shared resources
-- All access requires authenticated and compliant devices
-- Network traffic is filtered based on security policies
+- **🔐 Access Control**: Team-based application access with Azure AD integration
+- **🛡️ Gateway Protection**: DNS filtering, content blocking, and security policies
+- **🔒 Device Security**: Microsoft Intune integration for device posture checks
+- **🌐 WARP Client**: Secure device connectivity with team-specific policies
+- **📊 Monitoring**: Integrated Wazuh and Grafana dashboards
+- **🚇 Secure Tunnels**: Cloudflare tunnels for internal service exposure
 
-## Architecture
-
-The infrastructure consists of the following components:
-
-- **Identity Integration**: Microsoft Entra ID integration with SCIM provisioning
-- **Device Posture**: Microsoft Intune integration for device compliance
-- **Access Applications**: Team-specific protected applications (Red Team and Blue Team only)
-- **Access Policies**: Role-based access controls
-- **Gateway Policies**: Content and security filtering for network traffic
-- **WARP Client**: Device enrollment and secure connectivity
-
-## Prerequisites
-
-- Cloudflare Zero Trust account
-- Microsoft Entra ID tenant
-- Microsoft Intune subscription
-- Terraform Cloud account (optional, for state management)
-- Terraform 1.0.0+
-
-## Required Permissions
-
-- **Cloudflare**: Admin access to Cloudflare Zero Trust
-- **Microsoft Entra ID**: Application registration permissions
-- **Microsoft Intune**: Admin access for device compliance integration
-
-## Setup Instructions
-
-### 1. Configure Variables
-
-Copy the `example.tfvars` file to `terraform.tfvars` and update with your values:
+## 📁 Project Structure
 
 ```
-account_id          = "your-cloudflare-account-id"
-api_token           = "your-cloudflare-api-token"
-azure_client_id     = "your-azure-client-id"
-azure_client_secret = "your-azure-client-secret"
-azure_directory_id  = "your-azure-directory-id"
-intune_client_id    = "your-intune-client-id"
-intune_client_secret = "your-intune-client-secret"
-
-# Red team configuration
-red_team_name = "Red Team"
-red_team_group_ids = [""]
-
-# Blue team configuration
-blue_team_name = "Blue Team"
-blue_team_group_ids = [""]
+terraform/
+├── environments/
+│   └── prod/
+│       ├── main.tf              # Main configuration
+│       ├── variables.tf         # Variable definitions
+│       ├── outputs.tf           # Output definitions
+│       └── terraform.tfvars     # Variable values (create this)
+└── modules/
+    ├── access/                  # Access applications and policies
+    ├── device_posture/          # Device compliance rules
+    ├── gateway/                 # Network security policies
+    ├── idp/                     # Identity provider configuration
+    └── warp/                    # WARP client policies
 ```
 
-### 2. Initialize Terraform
+## 🚀 Quick Start
+
+### Prerequisites
+
+1. **Cloudflare Account** with Zero Trust enabled
+2. **Azure AD/Entra ID** tenant with administrative access
+3. **Microsoft Intune** subscription (optional, for device posture)
+4. **Terraform Cloud** account (recommended)
+
+### Step 1: Clone and Configure
 
 ```bash
+git clone <repository-url>
 cd terraform/environments/prod
-terraform init
 ```
 
-### 3. Plan and Apply
+### Step 2: Create Variable Files
+
+Create `terraform.tfvars`:
+```hcl
+# Cloudflare Configuration
+account_id = "your-cloudflare-account-id"
+api_token  = "your-cloudflare-api-token"
+
+# Domain Configuration (change for different customers)
+domain = "yourdomain.com"  # Must be managed by Cloudflare
+
+# Azure AD Configuration
+azure_client_id     = "your-azure-app-client-id"
+azure_client_secret = "your-azure-app-secret"
+azure_directory_id  = "your-azure-tenant-id"
+
+# Microsoft Intune Configuration (optional)
+intune_client_id     = "your-intune-app-client-id"
+intune_client_secret = "your-intune-app-secret"
+
+# Team Configuration
+red_team_name = "Red Team"
+blue_team_name = "Blue Team"
+red_team_group_ids = ["azure-ad-group-id-for-red-team"]
+blue_team_group_ids = ["azure-ad-group-id-for-blue-team"]
+
+# Monitoring Domains (auto-generated from base domain)
+wazuh_domain = "wazuh.yourdomain.com"
+grafana_domain = "grafana.yourdomain.com"
+```
+
+### Step 3: Set Up Terraform Cloud (Recommended)
+
+1. Create workspace: `terraform-cloudflare-zerotrust`
+2. Configure variables in Terraform Cloud:
+
+#### Environment Variables (Sensitive):
+```bash
+TF_VAR_api_token = "your-cloudflare-api-token"
+TF_VAR_azure_client_secret = "your-azure-app-secret"
+TF_VAR_intune_client_secret = "your-intune-app-secret"
+```
+
+#### Terraform Variables:
+```hcl
+domain = "yourdomain.com"
+account_id = "your-cloudflare-account-id"
+azure_client_id = "your-azure-app-client-id"
+azure_directory_id = "your-azure-tenant-id"
+red_team_group_ids = ["group-id-1"]
+blue_team_group_ids = ["group-id-2"]
+```
+
+### Step 4: Deploy Infrastructure
 
 ```bash
+# Initialize Terraform
+terraform init
+
+# Plan deployment
 terraform plan -var-file=terraform.tfvars
+
+# Apply configuration
 terraform apply -var-file=terraform.tfvars
 ```
 
-### 4. Set Up SCIM Provisioning
+## 🔧 Azure AD Setup
 
-1. In the Cloudflare Zero Trust dashboard, navigate to Settings > Authentication
-2. Configure SCIM with your Microsoft Entra ID tenant
-3. Set up automatic user provisioning for the Red Team and Blue Team groups
+### Required Azure AD Applications
 
-## Environment Variables
+Create two Azure AD applications:
 
-The following environment variables can be used instead of `terraform.tfvars`:
-
-- `TF_VAR_account_id` - Cloudflare Account ID
-- `TF_VAR_api_token` - Cloudflare API Token
-- `TF_VAR_azure_client_id` - Azure AD Client ID
-- `TF_VAR_azure_client_secret` - Azure AD Client Secret
-- `TF_VAR_azure_directory_id` - Azure AD Directory ID
-- `TF_VAR_intune_client_id` - Microsoft Intune Client ID
-- `TF_VAR_intune_client_secret` - Microsoft Intune Client Secret
-
-## Resource Descriptions
-
-### Identity Provider
-
-```terraform
-resource "cloudflare_zero_trust_access_identity_provider" "microsoft_entra_id" {
-  # Configuration for Microsoft Entra ID integration
-}
-```
-
-- Integrates with Microsoft Entra ID for authentication
-- Enables group-based access controls
-- Supports claims for email, profile, and group membership
-
-### Access Groups
-
-```terraform
-resource "cloudflare_zero_trust_access_group" "red_team" {
-  # Configuration for Red Team access group
-}
-
-resource "cloudflare_zero_trust_access_group" "blue_team" {
-  # Configuration for Blue Team access group
-}
-```
-
-- Maps Azure AD security groups to Cloudflare access groups
-- Used for role-based access control
-- Synchronized via SCIM provisioning
-
-### Device Posture Rules
-
-```terraform
-resource "cloudflare_zero_trust_device_posture_rule" "disk_encryption" {
-  # Disk encryption requirements
-}
-
-resource "cloudflare_zero_trust_device_posture_rule" "os_version_windows" {
-  # OS version requirements
-}
-
-resource "cloudflare_zero_trust_device_posture_rule" "intune_compliance" {
-  # Intune compliance check
-}
-```
-
-- Enforces security requirements for devices
-- Integrates with Microsoft Intune for compliance checks
-- Blocks non-compliant devices from accessing resources
-
-### Access Applications
-
-```terraform
-resource "cloudflare_zero_trust_access_application" "red_team_app" {
-  # Red Team specific application
-}
-
-resource "cloudflare_zero_trust_access_application" "blue_team_app" {
-  # Blue Team specific application
-}
-```
-
-- Defines protected applications
-- Configures authentication requirements
-- Sets session duration and visibility
-
-### Gateway Policies
-
-```terraform
-resource "cloudflare_zero_trust_gateway_policy" "consolidated_security_blocks" {
-  # Security threat blocking
-}
-
-resource "cloudflare_zero_trust_gateway_policy" "security_tools_dns" {
-  # Security tools access
-}
-
-resource "cloudflare_zero_trust_gateway_policy" "security_testing_domains" {
-  # Red Team domains pattern matching
-}
-
-resource "cloudflare_zero_trust_gateway_policy" "monitoring_domains" {
-  # Blue Team domains pattern matching
-}
-```
-
-- Filters network traffic based on security categories
-- Blocks malicious content and inappropriate websites
-- Allows approved security tools based on team roles
-
-## WARP Client Deployment
-
-### Windows Deployment
-
-```powershell
-# PowerShell script for automated deployment
-$warpInstallerUrl = "https://1.1.1.1/Cloudflare_WARP_Release-x64.msi"
-$outFile = "$env:TEMP\Cloudflare_WARP.msi"
-Invoke-WebRequest -Uri $warpInstallerUrl -OutFile $outFile
-Start-Process msiexec.exe -ArgumentList "/i $outFile /quiet" -Wait
-```
-
-### macOS Deployment
-
+#### 1. Cloudflare Zero Trust Application
 ```bash
-# Bash script for automated deployment
-curl -L https://1.1.1.1/Cloudflare_WARP.pkg -o /tmp/Cloudflare_WARP.pkg
-sudo installer -pkg /tmp/Cloudflare_WARP.pkg -target /
+# Application settings:
+Name: "Cloudflare Zero Trust"
+Redirect URIs: https://<your-team-name>.cloudflareaccess.com/cdn-cgi/access/callback
+Grant admin consent for Directory.Read.All
 ```
 
-### Linux Deployment
-
+#### 2. Microsoft Intune Application (Optional)
 ```bash
-# For Ubuntu/Debian
-curl -L https://pkg.cloudflareclient.com/cloudflare-warp-ubuntu.deb -o /tmp/cloudflare-warp.deb
-sudo apt install /tmp/cloudflare-warp.deb
-
-# For Red Hat/CentOS
-curl -L https://pkg.cloudflareclient.com/cloudflare-warp-rhel.rpm -o /tmp/cloudflare-warp.rpm
-sudo rpm -i /tmp/cloudflare-warp.rpm
+# Application settings:
+Name: "Cloudflare Intune Integration"
+API Permissions: 
+  - DeviceManagementManagedDevices.Read.All
+  - DeviceManagementConfiguration.Read.All
 ```
 
-## Testing
+### Required Azure AD Groups
 
-Refer to the testing section in the documentation for detailed instructions on validating the deployment.
+Create security groups for team access:
+```bash
+# Red Team Group
+Name: "Red Team Security"
+Type: Security
+Members: Add red team members
 
-## Logging and Monitoring
-
-The configuration includes optional logging to Azure Blob Storage for audit and security analysis:
-
-```terraform
-resource "cloudflare_logpush_job" "gateway_logs" {
-  # Log configuration
-}
+# Blue Team Group  
+Name: "Blue Team Defense"
+Type: Security
+Members: Add blue team members
 ```
 
-To enable logging, set the following variables:
+## 🌐 Domain Setup
 
+### Add Domain to Cloudflare
+
+1. **Add Site**: Go to Cloudflare dashboard → Add Site → Enter your domain
+2. **Update Nameservers**: Update your domain registrar with Cloudflare nameservers
+3. **Verify Setup**: Ensure domain shows "Active" status in Cloudflare
+
+### Required DNS Records
+
+The following subdomains will be automatically configured:
+```bash
+redteam.yourdomain.com     # Red Team application
+blueteam.yourdomain.com    # Blue Team application  
+wazuh.yourdomain.com       # Wazuh security platform
+grafana.yourdomain.com     # Grafana monitoring
 ```
-enable_logs = true
-azure_storage_account = "your-storage-account"
-azure_storage_container = "gateway-logs"
-azure_sas_token = "your-sas-token"
+
+## 🧪 Testing Scenarios
+
+### Test 1: Basic Access Control
+```bash
+# Verify team application access
+curl -I https://redteam.yourdomain.com
+curl -I https://blueteam.yourdomain.com
+
+# Expected: 302 redirect to Azure AD login
 ```
 
-## Troubleshooting
+### Test 2: Device Posture Compliance
+```bash
+# Install WARP client on test device
+# Navigate to: https://redteam.yourdomain.com/warp
+# Follow enrollment process
+# Verify device compliance in Cloudflare dashboard
+```
 
-Common issues and solutions:
+### Test 3: DNS Filtering
+```bash
+# Test malicious domain blocking
+nslookup malware-domain.com 1.1.1.1
 
-1. **Policy Precedence Conflicts**: If you encounter errors about duplicate precedence, ensure each policy has a unique precedence value.
+# Expected: Blocked by Cloudflare security filtering
+```
 
-2. **DNS Filter Syntax Errors**: When creating gateway policies with DNS filters, use the proper `any()` syntax for array matching:
-   ```
-   traffic = "any(dns.domains[*] matches \".*\")"
-   ```
+### Test 4: Tunnel Connectivity
+```bash
+# Test internal service access
+curl -I https://wazuh.yourdomain.com
+curl -I https://grafana.yourdomain.com
 
-3. **WARP Client Connection Issues**: Ensure the WARP client is properly enrolled and the user is in the appropriate Azure AD group.
+# Expected: 302 redirect to authentication
+```
 
-## Security Considerations
+### Test 5: Team Isolation
+```bash
+# Login as Red Team member
+# Attempt access to: https://blueteam.yourdomain.com
+# Expected: Access denied
 
-- All traffic is filtered through Cloudflare Gateway
-- Device posture checks enforce security compliance
-- SCIM provisioning ensures access is removed when users leave groups
-- Default-deny approach blocks all traffic not explicitly allowed
+# Login as Blue Team member  
+# Attempt access to: https://redteam.yourdomain.com
+# Expected: Access denied
+```
 
-## Maintenance
+## 📊 Monitoring and Outputs
 
-- Regularly update the Terraform code to stay current with Cloudflare API changes
-- Review and adjust policies as security requirements evolve
-- Keep the WARP client updated on all devices
-
-## License
-
-MIT
-
-## Contributors
-
-- Your organization's security team
-
-## Version History
-
-- 1.0.0: Initial release
-- 1.0.1: Fixed policy precedence conflicts
-- 1.0.2: Added Microsoft Intune integration
-- 1.1.0: Added SCIM provisioning
-
-## Remote State Configuration (Recommended)
-
-To enable safe collaboration and state management, use a remote backend. Example for Terraform Cloud:
+After successful deployment, you'll get these outputs:
 
 ```hcl
-terraform {
-  cloud {
-    organization = "your-org"
-    workspaces {
-      name = "your-workspace"
-    }
+application_urls = {
+  "blue_team" = "https://blueteam.yourdomain.com"
+  "grafana" = "https://grafana.yourdomain.com"
+  "red_team" = "https://redteam.yourdomain.com"
+  "wazuh" = "https://wazuh.yourdomain.com"
+}
+
+monitoring_tunnel_id = "fd6c1246-a5bb-4d4c-bba2-63ddde86ddcf"
+warp_enrollment_url = "https://redteam.yourdomain.com/warp"
+```
+
+## 🔄 Multi-Environment Setup
+
+### For Different Customers/Environments
+
+1. **Create New Workspace**: `terraform-cloudflare-customer-a`
+2. **Update Variables**:
+   ```hcl
+   domain = "customer-a.com"
+   red_team_group_ids = ["customer-a-red-team-group"]
+   blue_team_group_ids = ["customer-a-blue-team-group"]
+   ```
+3. **Deploy**: `terraform apply`
+
+### For Development/Staging
+
+```hcl
+# Use subdomains for environments
+domain = "dev.yourdomain.com"
+# or
+domain = "staging.yourdomain.com"
+```
+
+## 🛠️ Customization
+
+### Adding New Applications
+
+1. **Add to access module** (`modules/access/main.tf`):
+```hcl
+resource "cloudflare_zero_trust_access_application" "new_app" {
+  account_id = var.account_id
+  name       = "New Application"
+  domain     = "newapp.${var.domain}"
+  type       = "self_hosted"
+  session_duration = "8h"
+}
+```
+
+2. **Add access policy**:
+```hcl
+resource "cloudflare_zero_trust_access_policy" "new_app_access" {
+  account_id     = var.account_id
+  application_id = cloudflare_zero_trust_access_application.new_app.id
+  name           = "New App Access Policy"
+  decision       = "allow"
+  precedence     = 1
+
+  include {
+    group = [var.red_team_group_id, var.blue_team_group_id]
   }
 }
 ```
 
-Or for AWS S3:
+### Custom Gateway Policies
 
+Add to `modules/gateway/main.tf`:
 ```hcl
-terraform {
-  backend "s3" {
-    bucket         = "your-tf-state-bucket"
-    key            = "path/to/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "your-tf-lock-table"
-    encrypt        = true
-  }
+resource "cloudflare_zero_trust_gateway_policy" "custom_policy" {
+  account_id  = var.account_id
+  name        = "Custom Security Policy"
+  description = "Block specific categories"
+  precedence  = 15
+  action      = "block"
+  filters     = ["dns"]
+  traffic     = "any(dns.content_category[*] in {1 4 5})"
+  enabled     = true
 }
 ```
 
-## Sensitive Variable Handling
+## 🚨 Troubleshooting
 
-Sensitive variables (API tokens, secrets) are marked as `sensitive = true` in the code. Use environment variables or a secrets manager to provide these values securely. Never commit secrets to version control.
+### Common Issues
+
+#### 1. Domain Not Managed by Cloudflare
+```bash
+Error: domain does not belong to zone (12130)
+```
+**Solution**: Add domain to Cloudflare and update nameservers
+
+#### 2. DNS Filter Syntax Error
+```bash
+Error: Filter parsing error
+```
+**Solution**: Use correct syntax: `any(dns.domains[*] in {"domain.com"})`
+
+#### 3. Azure AD Permission Issues
+```bash
+Error: insufficient privileges
+```
+**Solution**: Grant admin consent for required API permissions
+
+#### 4. Device Posture Integration Failed
+```bash
+Error: Intune integration failed
+```
+**Solution**: Verify Intune app permissions and tenant configuration
+
+### Debug Commands
+
+```bash
+# Check Terraform state
+terraform state list
+
+# View specific resource
+terraform state show module.access.cloudflare_zero_trust_access_application.red_team
+
+# Force refresh
+terraform refresh -var-file=terraform.tfvars
+
+# Targeted apply
+terraform apply -target=module.access -var-file=terraform.tfvars
+```
+
+## 🔐 Security Best Practices
+
+### Variable Management
+- ✅ Use Terraform Cloud for sensitive variables
+- ✅ Never commit secrets to Git
+- ✅ Use environment variables for API tokens
+- ✅ Enable variable encryption in Terraform Cloud
+
+### Access Control
+- ✅ Implement least privilege access
+- ✅ Regular review of group memberships
+- ✅ Enable MFA for all accounts
+- ✅ Monitor access logs regularly
+
+### Network Security
+- ✅ Enable all security categories in Gateway
+- ✅ Regular review of gateway policies
+- ✅ Monitor DNS query logs
+- ✅ Implement device posture requirements
+
+## 📋 Production Checklist
+
+Before deploying to production:
+
+- [ ] Domain added to Cloudflare and active
+- [ ] Azure AD applications configured with correct permissions
+- [ ] Security groups created with proper membership
+- [ ] Terraform Cloud workspace configured
+- [ ] All sensitive variables marked as sensitive
+- [ ] Backup of current configuration
+- [ ] Test deployment in non-production environment
+- [ ] Team training on new access procedures
+- [ ] Incident response plan updated
+- [ ] Monitoring and alerting configured
+
+## 📞 Support
+
+### Infrastructure Issues
+- Check Terraform Cloud run logs
+- Review Cloudflare Zero Trust dashboard
+- Verify Azure AD application configuration
+
+### Access Issues
+- Verify user group membership in Azure AD
+- Check device compliance status
+- Review access policy configuration
+
+### Network Issues
+- Test DNS resolution
+- Check gateway policy precedence
+- Verify tunnel connectivity
+
+## 🔄 Updates and Maintenance
+
+### Regular Tasks
+- **Weekly**: Review access logs and security alerts
+- **Monthly**: Update device posture policies
+- **Quarterly**: Review and update security policies
+- **Annually**: Rotate API tokens and secrets
+
+### Version Updates
+```bash
+# Update Terraform modules
+terraform init -upgrade
+
+# Plan with new versions
+terraform plan -var-file=terraform.tfvars
+
+# Apply updates
+terraform apply -var-file=terraform.tfvars
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+---
+
+**🎯 Ready to deploy secure, scalable Zero Trust infrastructure!**
